@@ -14,7 +14,7 @@ function Home() {
     },
     {
       type: 'Article',
-      prefix: 'A good article to publish a blog post.'
+      prefix: 'A good article for a blog post.'
     },
     {
       type: 'Person',
@@ -28,6 +28,23 @@ function Home() {
       type: 'Custom',
       prefix: ''
     }
+  ]
+
+  const storyTemplates = [
+    'I was rejected on a technical interview today',
+    'Here are some tips for you to improve your coding skills',
+    'Do these things if you want to be a good programmer:\n\n',
+    'Today, I have finished my study at the university',
+    'If you are a business owner, you can should do these things',
+    'As a boss at my company, I want to make sure that everyone is happy',
+    'I will make sure everyone is happy. Here is a list of things I want to do',
+    'As a good software engineer, I have advice for you: \n\n',
+    'I am a data analyst, I want to share my knowledge with you',
+    'Here are some side projects that I have done:\n\n',
+    'Talking about current technology trends',
+    '5 things you should know of about this pandemic:\n\n',
+    'I will resign, here is a message for my farewell speech:\n\n',
+    'Someone in my team will resign, here are what should I do:\n\n',
   ]
 
   const loadingMessages = [
@@ -60,6 +77,10 @@ function Home() {
     form.setFieldsValue({ text: originalText })
   }
 
+  const pickRandom = () => {
+    form.setFieldsValue({ text: storyTemplates[Math.floor(Math.random() * storyTemplates.length)] })
+  }
+
   return (
     <Layout.Content style={{ margin: '5vh 0' }}>
       <Row>
@@ -73,12 +94,12 @@ function Home() {
                 <Row gutter={12} align="middle">
                   <Col span={24} sm={8} md={5}>
                     <Form.Item name="type">
-                      <Select placeholder="Select the objective" defaultValue="motivate" onChange={e => {
+                      <Select disabled={loading} placeholder="Select the objective" defaultValue="motivate" onChange={e => {
                         form.setFieldsValue({
                           prefix: objectives.find(o => o.type === e)?.prefix
                         })
                       }}>
-                        {objectives?.map(obj => <Select.Option value={obj.type}>{obj.type}</Select.Option>)}
+                        {objectives?.map(obj => <Select.Option value={obj.type} key={obj.type}>{obj.type}</Select.Option>)}
                       </Select>
                     </Form.Item>
                   </Col>
@@ -92,6 +113,11 @@ function Home() {
             </Collapse>
             <Form.Item name="text" rules={[{ required: true }]}>
               <Input.TextArea disabled={loading} autoSize={{ minRows: 7 }} placeholder="Write your story here..." />
+            </Form.Item>
+            <Form.Item style={{ textAlign: 'right' }}>
+              <Button style={{ textAlign: 'right' }} type="link" disabled={loading} onClick={pickRandom}>
+                Pick a Random Story
+              </Button>
             </Form.Item>
             <Form.Item style={{ textAlign: 'right' }}>
               {loading && <Typography.Paragraph style={{ float: 'left' }} type="secondary" italic>
