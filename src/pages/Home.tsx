@@ -1,60 +1,25 @@
-import { Button, Col, Collapse, Form, Input, Layout, Row, Select, Space, Typography } from 'antd'
+import { TwitterOutlined } from '@ant-design/icons'
+import { Button, Col, Collapse, Divider, Form, Input, Layout, Row, Select, Space, Typography } from 'antd'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import { loadingMessages, objectives, storyTemplates } from '../utils/Constant'
 
 function Home() {
   const [form] = Form.useForm()
   const [originalText, setOriginalText] = useState()
   const [loading, setLoading] = useState<boolean>(false)
+  const [twitterProfile, setTwitterProfile] = useState<any>()
 
-  const objectives = [
-    {
-      type: 'Motivational',
-      prefix: 'The motivational story for a social media post.'
-    },
-    {
-      type: 'Article',
-      prefix: 'A good article for a blog post.'
-    },
-    {
-      type: 'Person',
-      prefix: 'Description of someone that is mentioned.'
-    },
-    {
-      type: 'QnA',
-      prefix: 'The best answer for this question based on facts.'
-    },
-    {
-      type: 'Custom',
-      prefix: ''
-    }
-  ]
-
-  const storyTemplates = [
-    'I was rejected on a technical interview today',
-    'Here are some tips for you to improve your coding skills',
-    'Do these things if you want to be a good programmer:\n\n',
-    'Today, I have finished my study at the university',
-    'If you are a business owner, you can should do these things',
-    'As a boss at my company, I want to make sure that everyone is happy',
-    'I will make sure everyone is happy. Here is a list of things I want to do',
-    'As a good software engineer, I have advice for you: \n\n',
-    'I am a data analyst, I want to share my knowledge with you',
-    'Here are some side projects that I have done:\n\n',
-    'Talking about current technology trends',
-    '5 things you should know of about this pandemic:\n\n',
-    'I will resign, here is a message for my farewell speech:\n\n',
-    'Someone in my team will resign, here are what should I do:\n\n',
-  ]
-
-  const loadingMessages = [
-    'Generating story...',
-    'It is taking longer than usual...',
-    'You can grab a coffee and wait for a while...',
-    'Relax and enjoy the view...',
-    'Please walk around and wait for it...',
-    'Take a break and please wait...'
-  ]
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await axios.get('/api/v1/twitter/me', { withCredentials: true })
+        setTwitterProfile(data)
+      } catch (error) {
+        // ignore
+      }
+    })()
+  }, [])
 
   useEffect(() => {
     form.setFieldsValue(objectives[0])
@@ -115,7 +80,7 @@ function Home() {
               <Input.TextArea disabled={loading} autoSize={{ minRows: 7 }} placeholder="Write your story here..." />
             </Form.Item>
             <Form.Item style={{ textAlign: 'right' }}>
-              <Button style={{ textAlign: 'right' }} type="link" disabled={loading} onClick={pickRandom}>
+              <Button shape="round" style={{ textAlign: 'right' }} type="link" disabled={loading} onClick={pickRandom}>
                 Pick a Random Story
               </Button>
             </Form.Item>
@@ -124,15 +89,21 @@ function Home() {
                 {loadingMessages[Math.floor(Math.random() * loadingMessages.length)]}
               </Typography.Paragraph>}
               <Space>
-                <Button type="primary" htmlType="submit" loading={loading}>
+                <Button shape="round" type="primary" htmlType="submit" loading={loading}>
                   Generate
                 </Button>
-                <Button type="default" disabled={loading} onClick={reset}>
+                <Button shape="round" type="default" disabled={loading} onClick={reset}>
                   Reset
                 </Button>
               </Space>
             </Form.Item>
           </Form>
+          <Divider />
+          {!twitterProfile && <Typography.Paragraph>
+            <Button shape="round" icon={<TwitterOutlined />} href={`https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.REACT_APP_TWITTER_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain`}>
+              Log in with Twitter
+            </Button>
+          </Typography.Paragraph>}
         </Col>
       </Row>
     </Layout.Content>

@@ -1,6 +1,7 @@
 import { Layout } from 'antd'
 import { Route, Routes } from 'react-router-dom'
 import './App.css'
+import Auth from './pages/Auth'
 import Home from './pages/Home'
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
       <Layout.Content style={{ padding: '12px 22px' }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/redirect" element={<Auth />} />
         </Routes>
       </Layout.Content>
       <Layout.Footer style={{ textAlign: 'center' }}>
