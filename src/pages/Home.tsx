@@ -7,7 +7,7 @@ function Home() {
   return (
     <Layout.Content style={{ margin: '5vh 0' }}>
       <Typography.Title level={2} style={{ textAlign: 'center' }}>
-        Build a bullsh💩t story that is easy to go viral in a minute.
+        Build a bullsh💩t story that is easy to go viral in a minute with AI.
       </Typography.Title>
       <br />
       <TwitterTweetEmbed tweetId="1562711157885939712" />
