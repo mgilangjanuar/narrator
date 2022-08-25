@@ -1,11 +1,10 @@
 import { Layout, notification, Typography } from 'antd'
 import axios from 'axios'
 import { useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 
 function Auth() {
   const [params] = useSearchParams()
-  const navigate = useNavigate()
 
   useEffect(() => {
     if (params.get('code')) {
