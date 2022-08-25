@@ -19,7 +19,7 @@ function App() {
           }}/>
         </div>
       </Layout.Header>
-      <Layout.Content style={{ padding: '12px 22px' }}>
+      <Layout.Content style={{ padding: '12px 22px', marginBottom: '5vh' }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/redirect" element={<Auth />} />

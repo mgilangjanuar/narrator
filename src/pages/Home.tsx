@@ -1,8 +1,10 @@
 import { TwitterOutlined } from '@ant-design/icons'
-import { Button, Col, Collapse, Divider, Form, Input, Layout, notification, Row, Select, Space, Typography } from 'antd'
+import { Button, Col, Collapse, Divider, Form, Input, Layout, Modal, notification, Row, Select, Space, Typography } from 'antd'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import { Tweet } from 'react-fake-tweet'
 import { loadingMessages, objectives, storyTemplates } from '../utils/Constant'
+import 'react-fake-tweet/dist/index.css'
 
 function Home() {
   const [form] = Form.useForm()
@@ -10,6 +12,7 @@ function Home() {
   const [loading, setLoading] = useState<boolean>(false)
   const [loadingThread, setLoadingThread] = useState<boolean>(false)
   const [twitterProfile, setTwitterProfile] = useState<any>()
+  const [showPreview, setShowPreview] = useState<boolean>(false)
 
   useEffect(() => {
     (async () => {
@@ -62,14 +65,27 @@ function Home() {
     localStorage.setItem('data', JSON.stringify({ ...fields, originalText: overwriteOriginalText || originalText }))
   }
 
+  const generateTweets = (text: string = form.getFieldValue('text')): string[] => text
+    ?.split('\n\n')
+    .filter(Boolean)
+    .map(t => t.trim())
+    .reduce((res: string[], data: string) => {
+      const chunks = data.match(/.{1,274}/g) as Array<string>
+      return [...res, ...chunks.length > 1 ? chunks.map((t, i) => {
+        if (i === 0) {
+          return `${t}...`
+        }
+        if (i === chunks.length - 1) {
+          return `...${t}`
+        }
+        return `...${t}...`
+      }) : chunks]
+    }, [])
+
   const createThread =  async () => {
     setLoadingThread(true)
-    const { text } = form.getFieldsValue()
-    const { data } = await axios.post('/api/v1/twitter/thread', {
-      tweets: text.split('\n\n').filter(Boolean).reduce((res: string[], data: string) => {
-        return [...res, ...(data.match(/.{1,280}/g) as Array<string>)]
-      }, [])
-    }, { withCredentials: true })
+    const tweets = generateTweets()
+    const { data } = await axios.post('/api/v1/twitter/thread', { tweets }, { withCredentials: true })
     const url = `https://twitter.com/${twitterProfile.username}/status/${data.id}`
     notification.success({
       message: 'Success',
@@ -134,7 +150,7 @@ function Home() {
           </Form>
           <Divider />
           <Typography.Title level={4}>
-            Create thread on Twitter ✨🧵🪡
+            Create thread on Twitter 🧵🪡
           </Typography.Title>
           <Typography.Paragraph type="secondary">
             You can create a thread on Twitter automatically based on your story above by clicking the button below.
@@ -145,13 +161,37 @@ function Home() {
             </Button>
           </Typography.Paragraph> : <>
             <Typography.Paragraph>
-              <Button loading={loadingThread} type="primary" shape="round" icon={<TwitterOutlined />} onClick={createThread}>
+              <Button loading={loadingThread} type="primary" shape="round" icon={<TwitterOutlined />} onClick={() => setShowPreview(true)}>
                 Create thread
               </Button>
             </Typography.Paragraph>
           </>}
         </Col>
       </Row>
+      <Modal title="Preview"
+        visible={showPreview}
+        okButtonProps={{ shape: 'round' }}
+        cancelButtonProps={{ shape: 'round' }}
+        onOk={() => {
+          createThread()
+          setShowPreview(false)
+        }}
+        onCancel={() => setShowPreview(false)}>
+        {generateTweets()?.map((tweet, i) => <Tweet
+          key={i}
+          config={{
+            user: {
+              avatar: twitterProfile?.profile_image_url,
+              nickname: twitterProfile?.username,
+              name: twitterProfile?.name
+            },
+            text: tweet,
+            date: Date.now(),
+            retweets: 0,
+            likes: 0
+          }}
+        />)}
+      </Modal>
     </Layout.Content>
   )
 }
