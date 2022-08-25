@@ -20,7 +20,8 @@ function Auth() {
             description: error?.response.data?.error.message || error?.response.data?.error || 'Something error, please try again...',
           })
         } finally {
-          navigate('/')
+          // navigate('/')
+          window.close()
         }
       })()
     }

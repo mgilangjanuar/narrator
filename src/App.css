@@ -1,1 +1,6 @@
 @import '~antd/dist/antd.css';
+
+.twitter-tweet {
+  margin-left: auto;
+  margin-right: auto;
+}

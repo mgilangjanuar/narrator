@@ -1,7 +1,9 @@
-import { Divider, Layout, Typography } from 'antd'
+import { Layout } from 'antd'
 import { Route, Routes } from 'react-router-dom'
 import './App.css'
+import Footer from './components/Footer'
 import Auth from './pages/Auth'
+import Go from './pages/Go'
 import Home from './pages/Home'
 
 function App() {
@@ -17,24 +19,20 @@ function App() {
         <div style={{
           fontSize: '1.4rem',
           fontWeight: 'bold',
-        }}><img src="/logo512.png" style={{
+        }}><a href="/"><img src="/logo512.png" style={{
             width: '1.7rem',
             marginRight: '6px'
-          }}/> Narrator
+          }}/> Narrator</a>
         </div>
       </Layout.Header>
       <Layout.Content style={{ padding: '12px 22px', marginBottom: '5vh' }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/go" element={<Go />} />
           <Route path="/redirect" element={<Auth />} />
         </Routes>
       </Layout.Content>
-      <Layout.Footer style={{ textAlign: 'center' }}>
-        <Divider />
-        <Typography.Paragraph>
-          Narrator | A Story Generator Engine &copy; 2022
-        </Typography.Paragraph>
-      </Layout.Footer>
+      <Footer />
     </Layout>
   )
 }
