@@ -17,7 +17,7 @@ function Auth() {
         } catch (error: any) {
           notification.error({
             message: 'Error',
-            description: error?.response.data?.error.message || 'Something error, please try again...',
+            description: error?.response.data?.error.message || error?.response.data?.error || 'Something error, please try again...',
           })
         } finally {
           navigate('/')

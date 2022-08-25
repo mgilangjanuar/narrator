@@ -43,15 +43,23 @@ function Home() {
   const submit = async () => {
     setLoading(true)
     const fields = form.getFieldsValue()
-    const { data } = await axios.post('/api/v1/completions', fields)
-    form.setFieldsValue({
-      text: `${fields.text}${data?.result}`
-    })
-    if (!originalText || !fields.text.startsWith(originalText)) {
-      setOriginalText(fields.text)
+    try {
+      const { data } = await axios.post('/api/v1/completions', fields)
+      form.setFieldsValue({
+        text: `${fields.text}${data?.result}`
+      })
+    } catch (error: any) {
+      notification.error({
+        message: 'Error',
+        description: error?.response.data?.error.message || error?.response.data?.error || 'Something error, please try again...',
+      })
+    } finally {
+      if (!originalText || !fields.text.startsWith(originalText)) {
+        setOriginalText(fields.text)
+      }
+      setLoading(false)
+      sync(fields.text)
     }
-    setLoading(false)
-    sync(fields.text)
   }
 
   const reset = async () => {
@@ -74,7 +82,7 @@ function Home() {
     .filter(Boolean)
     .map(t => t.trim())
     .reduce((res: string[], data: string) => {
-      const chunks = data.match(/.{1,274}/g) as Array<string>
+      const chunks = data.match(/(.|[\r\n]){1,274}/g) as Array<string>
       return [...res, ...chunks.length > 1 ? chunks.map((t, i) => {
         if (i === 0) {
           return `${t}...`
