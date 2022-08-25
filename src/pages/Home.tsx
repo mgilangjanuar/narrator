@@ -105,6 +105,7 @@ function Home() {
       btn: <Button shape="round" href={url}>View your thread</Button>
     })
     setLoadingThread(false)
+    setShowPreview(false)
   }
 
   return (
@@ -186,13 +187,10 @@ function Home() {
       <Modal
         title="Preview"
         visible={showPreview}
-        okButtonProps={{ shape: 'round', icon: <TwitterOutlined /> }}
+        okButtonProps={{ shape: 'round', icon: <TwitterOutlined />, loading: loadingThread }}
         cancelButtonProps={{ shape: 'round' }}
         okText="Create Thread"
-        onOk={() => {
-          createThread()
-          setShowPreview(false)
-        }}
+        onOk={createThread}
         onCancel={() => setShowPreview(false)}>
         <Typography.Paragraph type="secondary">
           You can edit your story before creating the thread. This action cannot be undone.
