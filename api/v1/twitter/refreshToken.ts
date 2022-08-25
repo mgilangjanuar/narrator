@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { serialize } from 'cookie'
 import { Request, Response } from 'express'
 import QueryString from 'qs'
 
@@ -14,5 +15,9 @@ export default async (req: Request, res: Response) => {
       password: process.env.TWITTER_CLIENT_SECRET || ''
     }
   })
-  return res.json(data)
+  res.setHeader('Set-Cookie', [
+    serialize('access_token', data.access_token, { maxAge: data.expires_in * 1000 }),
+    serialize('refresh_token', data.refresh_token)
+  ])
+  res.end(data.access_token)
 }

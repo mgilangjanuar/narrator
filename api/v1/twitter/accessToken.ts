@@ -21,8 +21,8 @@ export default async (req: Request, res: Response) => {
     }
   })
   res.setHeader('Set-Cookie', [
-    serialize('access_token', data.access_token, { maxAge: data.expires_in * 1000, httpOnly: true, secure: false }),
-    serialize('refresh_token', data.refresh_token, { httpOnly: true })
+    serialize('access_token', data.access_token, { maxAge: data.expires_in * 1000 }),
+    serialize('refresh_token', data.refresh_toke)
   ])
   res.end(data.access_token)
 }

@@ -1,10 +1,10 @@
-import { TwitterOutlined } from '@ant-design/icons'
+import { TwitterOutlined, WarningOutlined } from '@ant-design/icons'
 import { Button, Col, Collapse, Divider, Form, Input, Layout, Modal, notification, Row, Select, Space, Typography } from 'antd'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { Tweet } from 'react-fake-tweet'
-import { loadingMessages, objectives, storyTemplates } from '../utils/Constant'
 import 'react-fake-tweet/dist/index.css'
+import { loadingMessages, objectives, storyTemplates } from '../utils/Constant'
 
 function Home() {
   const [form] = Form.useForm()
@@ -16,11 +16,15 @@ function Home() {
 
   useEffect(() => {
     (async () => {
-      try {
+      const req = async () => {
         const { data } = await axios.get('/api/v1/twitter/me', { withCredentials: true })
         setTwitterProfile(data)
+      }
+      try {
+        await req()
       } catch (error) {
-        // ignore
+        await axios.post('/api/v1/twitter/refreshToken', {}, { withCredentials: true })
+        await req()
       }
     })()
   }, [])
@@ -108,7 +112,7 @@ function Home() {
                 <Row gutter={12} align="middle">
                   <Col span={24} sm={8} md={5}>
                     <Form.Item name="type">
-                      <Select disabled={loading} placeholder="Select the objective" defaultValue="motivate" onChange={e => {
+                      <Select disabled={loading} placeholder="Select the objective" defaultValue="Motivational" onChange={e => {
                         form.setFieldsValue({
                           prefix: objectives.find(o => o.type === e)?.prefix
                         })
@@ -159,24 +163,32 @@ function Home() {
             <Button shape="round" icon={<TwitterOutlined />} href={`https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.REACT_APP_TWITTER_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain`}>
               Log in with Twitter
             </Button>
-          </Typography.Paragraph> : <>
-            <Typography.Paragraph>
-              <Button loading={loadingThread} type="primary" shape="round" icon={<TwitterOutlined />} onClick={() => setShowPreview(true)}>
-                Create thread
-              </Button>
-            </Typography.Paragraph>
-          </>}
+          </Typography.Paragraph> : <Typography.Paragraph>
+            <Button loading={loadingThread} type="primary" shape="round" icon={<TwitterOutlined />} onClick={() => setShowPreview(true)}>
+              Preview Thread
+            </Button>
+          </Typography.Paragraph>}
+          <Divider />
+          <Typography.Title level={4}><WarningOutlined /> Disclaimer</Typography.Title>
+          <Typography.Paragraph type="secondary">
+            It uses Meta's OPT-175B model for text generation. <Typography.Text strong>Narrator</Typography.Text> is a research purpose project that enhances the model capabilities made by <a href="https://twitter.com/mgilangjanuar" target="_blank">@mgilangjanuar</a>. We can't ensure that this project will last long. So, use it wisely and read their <a target="_blank" href="https://opt.alpa.ai/#faq">FAQs</a>, <a href="https://github.com/facebookresearch/metaseq/blob/main/projects/OPT/MODEL_LICENSE.md" target="_blank">OPT license</a>, and <a href="https://github.com/alpa-projects/alpa/blob/main/LICENSE" target="_blank">Alpa license</a> carefully.
+          </Typography.Paragraph>
         </Col>
       </Row>
-      <Modal title="Preview"
+      <Modal
+        title="Preview"
         visible={showPreview}
-        okButtonProps={{ shape: 'round' }}
+        okButtonProps={{ shape: 'round', icon: <TwitterOutlined /> }}
         cancelButtonProps={{ shape: 'round' }}
+        okText="Create Thread"
         onOk={() => {
           createThread()
           setShowPreview(false)
         }}
         onCancel={() => setShowPreview(false)}>
+        <Typography.Paragraph type="secondary">
+          You can edit your story before creating the thread. This action cannot be undone.
+        </Typography.Paragraph>
         {generateTweets()?.map((tweet, i) => <Tweet
           key={i}
           config={{
