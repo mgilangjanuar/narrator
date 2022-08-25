@@ -1,5 +1,5 @@
 import { TwitterOutlined } from '@ant-design/icons'
-import { Button, Col, Collapse, Divider, Form, Input, Layout, Row, Select, Space, Typography } from 'antd'
+import { Button, Col, Collapse, Divider, Form, Input, Layout, notification, Row, Select, Space, Typography } from 'antd'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { loadingMessages, objectives, storyTemplates } from '../utils/Constant'
@@ -8,6 +8,7 @@ function Home() {
   const [form] = Form.useForm()
   const [originalText, setOriginalText] = useState()
   const [loading, setLoading] = useState<boolean>(false)
+  const [loadingThread, setLoadingThread] = useState<boolean>(false)
   const [twitterProfile, setTwitterProfile] = useState<any>()
 
   useEffect(() => {
@@ -22,7 +23,14 @@ function Home() {
   }, [])
 
   useEffect(() => {
-    form.setFieldsValue(objectives[0])
+    const data = localStorage.getItem('data')
+    if (data) {
+      const dataJSON = JSON.parse(data)
+      form.setFieldsValue(dataJSON)
+      setOriginalText(dataJSON.originalText)
+    } else {
+      form.setFieldsValue(objectives[0])
+    }
   }, [form])
 
   const submit = async () => {
@@ -36,6 +44,7 @@ function Home() {
       setOriginalText(fields.text)
     }
     setLoading(false)
+    sync(fields.text)
   }
 
   const reset = async () => {
@@ -43,7 +52,31 @@ function Home() {
   }
 
   const pickRandom = () => {
-    form.setFieldsValue({ text: storyTemplates[Math.floor(Math.random() * storyTemplates.length)] })
+    const text = storyTemplates[Math.floor(Math.random() * storyTemplates.length)]
+    form.setFieldsValue({ text })
+    sync(text)
+  }
+
+  const sync = async (overwriteOriginalText?: string) => {
+    const fields = form.getFieldsValue()
+    localStorage.setItem('data', JSON.stringify({ ...fields, originalText: overwriteOriginalText || originalText }))
+  }
+
+  const createThread =  async () => {
+    setLoadingThread(true)
+    const { text } = form.getFieldsValue()
+    const { data } = await axios.post('/api/v1/twitter/thread', {
+      tweets: text.split('\n\n').filter(Boolean).reduce((res: string[], data: string) => {
+        return [...res, ...(data.match(/.{1,280}/g) as Array<string>)]
+      }, [])
+    }, { withCredentials: true })
+    const url = `https://twitter.com/${twitterProfile.username}/status/${data.id}`
+    notification.success({
+      message: 'Success',
+      description: 'Your thread is generated successfully.',
+      btn: <Button shape="round" href={url}>View your thread</Button>
+    })
+    setLoadingThread(false)
   }
 
   return (
@@ -63,6 +96,7 @@ function Home() {
                         form.setFieldsValue({
                           prefix: objectives.find(o => o.type === e)?.prefix
                         })
+                        sync()
                       }}>
                         {objectives?.map(obj => <Select.Option value={obj.type} key={obj.type}>{obj.type}</Select.Option>)}
                       </Select>
@@ -70,14 +104,14 @@ function Home() {
                   </Col>
                   <Col span={24} sm={16} md={19}>
                     <Form.Item name="prefix">
-                      <Input.TextArea disabled={loading} autoSize />
+                      <Input.TextArea onBlur={() => sync()} disabled={loading} autoSize />
                     </Form.Item>
                   </Col>
                 </Row>
               </Collapse.Panel>
             </Collapse>
             <Form.Item name="text" rules={[{ required: true }]}>
-              <Input.TextArea disabled={loading} autoSize={{ minRows: 7 }} placeholder="Write your story here..." />
+              <Input.TextArea allowClear onBlur={() => sync()} disabled={loading} autoSize={{ minRows: 7 }} placeholder="Write your story here..." />
             </Form.Item>
             <Form.Item style={{ textAlign: 'right' }}>
               <Button shape="round" style={{ textAlign: 'right' }} type="link" disabled={loading} onClick={pickRandom}>
@@ -99,11 +133,23 @@ function Home() {
             </Form.Item>
           </Form>
           <Divider />
-          {!twitterProfile && <Typography.Paragraph>
+          <Typography.Title level={4}>
+            Create thread on Twitter ✨🧵🪡
+          </Typography.Title>
+          <Typography.Paragraph type="secondary">
+            You can create a thread on Twitter automatically based on your story above by clicking the button below.
+          </Typography.Paragraph>
+          {!twitterProfile ? <Typography.Paragraph>
             <Button shape="round" icon={<TwitterOutlined />} href={`https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${process.env.REACT_APP_TWITTER_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_REDIRECT_URI}&scope=tweet.read%20tweet.write%20users.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain`}>
               Log in with Twitter
             </Button>
-          </Typography.Paragraph>}
+          </Typography.Paragraph> : <>
+            <Typography.Paragraph>
+              <Button loading={loadingThread} type="primary" shape="round" icon={<TwitterOutlined />} onClick={createThread}>
+                Create thread
+              </Button>
+            </Typography.Paragraph>
+          </>}
         </Col>
       </Row>
     </Layout.Content>
